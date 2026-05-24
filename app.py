@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import joblib
 
-# 1. Modeli, Scaler'ı, Encoder'ları ve Sütun Sırasını Yükle
+# 1. Load Model, Scaler, Encoders, and Column Order
 @st.cache_resource
 def load_assets():
     model = joblib.load('f1_pit_model_streamlit.joblib')
@@ -17,7 +17,6 @@ model, scaler, ord_enc, te_race, te_driver, feature_cols = load_assets()
 
 st.title("F1 Pit Stop Predictor")
 
-# ... (race_options aynı kalabilir) ...
 race_options = ["Canadian Grand Prix", "Dutch Grand Prix", "Austrian Grand Prix", "Pre-Season Testing", 
                 "Azerbaijan Grand Prix", "Saudi Arabian Grand Prix", "Belgian Grand Prix", 
                 "United States Grand Prix", "Italian Grand Prix", "Hungarian Grand Prix", 
@@ -45,9 +44,10 @@ with st.form("pit_form"):
         race_progress = st.number_input("Race Progress", 0.0, 1.0, 0.0, step=0.01)
         position_change = st.number_input("Position Change", -20.0, 20.0, 0.0)
         
-    submitted = st.form_submit_button("Predict")
+    submitted = st.form_submit_button("Predict Next Pit Stop")
 
 if submitted:
+    # 1. Prepare Data Dictionary (including Feature Engineering)
     data = {
         'Driver': driver, 'Compound': compound, 'Race': race, 'Year': year,
         'LapNumber': lap_number, 'Stint': stint, 'TyreLife': tyre_life,
@@ -59,27 +59,20 @@ if submitted:
         'Position_Momentum': position_change,
         'Stint_Lap_Count': lap_number,
         'Degradation_Velocity': cumulative_deg / (lap_number + 1),
-        'PitStop': 0  # <--- Hatanı gidermek için eklenen satır
+        'PitStop': 0  # Placeholder for model compatibility
     }
     
     input_df = pd.DataFrame([data])
     
-    # Eksik sütunları kontrol et
+    # Check for missing columns
     missing_cols = [c for c in feature_cols if c not in input_df.columns]
+    
     if missing_cols:
-        st.error(f"Eksik Sütunlar bulundu: {missing_cols}")
+        st.error(f"Missing columns required by the model: {missing_cols}")
     else:
-        # Sütunları eğitim sırasına göre diz
+        # Reorder columns to match the training set
         input_df = input_df[feature_cols] 
         
-        # Encoding
+        # Apply Encoding
         input_df['Compound'] = ord_enc.transform(input_df[['Compound']])
-        input_df['Race'] = te_race.transform(input_df[['Race']])
-        input_df['Driver'] = te_driver.transform(input_df[['Driver']])
-        
-        # Tahmin
-        input_scaled = scaler.transform(input_df)
-        prediction = model.predict(input_scaled)
-        
-        result = "Pit Stop" if prediction[0] == 1 else "No Pit Stop"
-        st.success(f"Prediction: {result}")
+        input_df['Race'] = te_race.transform
