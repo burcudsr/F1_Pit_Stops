@@ -5,13 +5,13 @@ import joblib
 # 1. Modeli, Scaler'ı ve tüm Encoder'ları Yükle
 @st.cache_resource
 def load_assets():
-    model = joblib.load('f1_pit_model_streamlit.joblib')
-    scaler = joblib.load('f1_pit_scaler_2.joblib')
-    ord_enc = joblib.load('ordinal_enc.joblib')       # Compound için
-    te_race = joblib.load('target_enc_race.joblib')   # Race için
-    te_driver = joblib.load('target_enc_driver.joblib') # Driver için
+    model = joblib.load('model_assets/f1_pit_model.joblib')
+    scaler = joblib.load('model_assets/f1_pit_scaler.joblib')
+    ord_enc = joblib.load('model_assets/ordinal_enc.joblib')
+    te_race = joblib.load('model_assets/target_race.joblib')
+    te_driver = joblib.load('model_assets/target_driver.joblib')
     return model, scaler, ord_enc, te_race, te_driver
-
+    
 model, scaler, ord_enc, te_race, te_driver = load_assets()
 
 st.title("F1 Pit Stop Predictor")
