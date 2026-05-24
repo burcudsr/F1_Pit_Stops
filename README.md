@@ -3,7 +3,7 @@
 This project focuses on predicting the timing of Formula 1 pit stops by analyzing race telemetry and historical event data, developed for the **Kaggle Playground Series - Season 5, Episode 10**.
 
 ### 🚀 Live Demo
-Explore the interactive prediction model: https://huggingface.co/spaces/bdaser/F1_PitStops
+Explore the interactive prediction model: https://f1pitstops.streamlit.app
 
 ### 🛠️ Advanced Feature Engineering
 A custom pipeline was engineered to extract deep insights from raw race telemetry:
