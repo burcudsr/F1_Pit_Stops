@@ -5,6 +5,8 @@ This project focuses on predicting the timing of Formula 1 pit stops by analyzin
 ### 🚀 Live Demo
 Explore the interactive prediction model: https://f1pitstops.streamlit.app
 
+Access the tool here: **[F1 Pit Stop Prediction App](https://f1pitstops.streamlit.app/)**
+
 ### 🛠️ Advanced Feature Engineering
 A custom pipeline was engineered to extract deep insights from raw race telemetry:
 * **Tyre Dynamics & Volatility**: Metrics such as `Tyre_Usage_Rate`, `Rolling_LapTime_Std` (tyre cliff indicator), and `Position_Momentum` were calculated to track tyre performance and race trends.
