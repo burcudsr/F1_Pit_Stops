@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import joblib
 
-# 1. Modeli, Scaler'ı ve tüm Encoder'ları Yükle
+# 1. Modeli, Scaler'ı, Encoder'ları ve Sütun Sırasını Yükle
 @st.cache_resource
 def load_assets():
     model = joblib.load('f1_pit_model_streamlit.joblib')
@@ -10,9 +10,10 @@ def load_assets():
     ord_enc = joblib.load('ordinal_enc.joblib')
     te_race = joblib.load('target_race.joblib')
     te_driver = joblib.load('target_driver.joblib')
-    return model, scaler, ord_enc, te_race, te_driver
-    
-model, scaler, ord_enc, te_race, te_driver = load_assets()
+    feature_cols = joblib.load('feature_columns.joblib') # Eğitimdeki sütun sırası
+    return model, scaler, ord_enc, te_race, te_driver, feature_cols
+
+model, scaler, ord_enc, te_race, te_driver, feature_cols = load_assets()
 
 st.title("F1 Pit Stop Predictor")
 
@@ -46,29 +47,30 @@ with st.form("pit_form"):
     submitted = st.form_submit_button("Predict")
 
 if submitted:
-    # Ham veriyi DataFrame'e al
-    input_df = pd.DataFrame([{
+    # 1. Veri sözlüğü (Feature Engineering dahil)
+    data = {
         'Driver': driver, 'Compound': compound, 'Race': race, 'Year': year,
         'LapNumber': lap_number, 'Stint': stint, 'TyreLife': tyre_life,
         'Position': position, 'LapTime (s)': lap_time, 'LapTime_Delta': lap_delta,
         'Cumulative_Degradation': cumulative_deg, 'RaceProgress': race_progress,
-        'Position_Change': position_change
-    }])
-
-    # 1. FE ADIMLARI (Eğitimdeki mantıkla aynı)
-    input_df['Tyre_Usage_Rate'] = input_df['TyreLife'] / 30.0 
-    input_df['Rolling_LapTime_Std'] = 0.0 # Tahmin anında anlık veri olduğu için
-    input_df['Position_Momentum'] = input_df['Position_Change'] 
-    input_df['Stint_Lap_Count'] = input_df['LapNumber'] 
-    input_df['Degradation_Velocity'] = input_df['Cumulative_Degradation'] / (input_df['LapNumber'] + 1)
+        'Position_Change': position_change,
+        'Tyre_Usage_Rate': tyre_life / 30.0,
+        'Rolling_LapTime_Std': 0.0,
+        'Position_Momentum': position_change,
+        'Stint_Lap_Count': lap_number,
+        'Degradation_Velocity': cumulative_deg / (lap_number + 1)
+    }
     
-    # 2. ENCODING ADIMLARI
+    # 2. DataFrame oluştur ve eğitimdeki sütun sırasına göre düzenle
+    input_df = pd.DataFrame([data])
+    input_df = input_df[feature_cols] 
+    
+    # 3. ENCODING
     input_df['Compound'] = ord_enc.transform(input_df[['Compound']])
     input_df['Race'] = te_race.transform(input_df[['Race']])
     input_df['Driver'] = te_driver.transform(input_df[['Driver']])
     
-    # 3. ÖLÇEKLEME VE TAHMİN (Sütun sırasının eğitimdeki ile aynı olduğundan emin ol)
-    # Eğitimde id, PitStop gibi sütunlar varsa buraya eklemelisin
+    # 4. ÖLÇEKLEME VE TAHMİN
     input_scaled = scaler.transform(input_df)
     prediction = model.predict(input_scaled)
     
